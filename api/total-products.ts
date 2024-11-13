@@ -16,7 +16,7 @@ const shopify = new Shopify({
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
 
-    res.status(200).json({ shopify });
+    res.status(200).json({ shopify.order });
     // Récupérer les commandes avec l'API Shopify
     const orders = await shopify.order.list({
       status: 'any',
