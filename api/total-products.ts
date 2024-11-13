@@ -12,10 +12,23 @@ const ordersUrl = `https://${apiKey}:${apiPassword}@${shopDomain}/admin/api/2023
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const response = await fetch(ordersUrl);
+
+    // Vérifier le statut de la réponse
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP : ${response.status}`);
+    }
+
     const data = await response.json();
 
+    // Afficher la réponse pour déboguer
+    console.log('Réponse de l\'API Shopify:', data);
+
+    if (!data.orders) {
+      throw new Error('Aucune commande trouvée');
+    }
+
     let totalProducts = 0;
-    res.status(200).json({ data });
+
     // Parcourir toutes les commandes et additionner le nombre de produits
     data.orders.forEach((order: any) => {
       order.line_items.forEach((item: any) => {
@@ -30,3 +43,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 }
+
