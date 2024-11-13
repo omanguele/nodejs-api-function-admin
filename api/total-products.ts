@@ -1,40 +1,38 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import Shopify from 'shopify-api-node';
+import got from 'got';
 
 // Remplacer par vos informations Shopify
-const shopDomain = 'noel-a-lhopital.myshopify.com';  // Domaine de votre boutique
 const apiKey = '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';  // Clé API privée de Shopify
 const apiPassword = '487ce62bbf1395f5a4b96ff9ab309896';  // Mot de passe de l'API privée
+const shopDomain = 'noel-a-lhopital.myshopify.com';  // Domaine de votre boutique
 
-// Configurer Shopify API client
-const shopify = new Shopify({
-  shopName: shopDomain,
-  apiKey: apiKey,
-  password: apiPassword
-});
+// URL pour récupérer les commandes
+const ordersUrl = `https://${shopDomain}/admin/api/2023-10/orders.json?status=any&financial_status=paid`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-
-    res.status(200).json({ shopify.order });
-    // Récupérer les commandes avec l'API Shopify
-    const orders = await shopify.order.list({
-      status: 'any',
-      financial_status: 'paid',
-      limit: 250, // Nombre maximum d'ordres récupérés (peut être ajusté)
+    // Effectuer la requête avec got et l'authentification dans les en-têtes
+    const response = await got(ordersUrl, {
+      headers: {
+        'Authorization': `Basic ${Buffer.from(`${apiKey}:${apiPassword}`).toString('base64')}`,
+        'Content-Type': 'application/json',
+      }
     });
+
+    // Analyser la réponse JSON
+    const data = JSON.parse(response.body);
 
     let totalProducts = 0;
 
     // Parcourir toutes les commandes et additionner le nombre de produits
-    orders.forEach((order: any) => {
+    data.orders.forEach((order: any) => {
       order.line_items.forEach((item: any) => {
         totalProducts += item.quantity;
       });
     });
 
     // Renvoyer le nombre total de produits commandés
-    
+    res.status(200).json({ totalProducts });
   } catch (error) {
     console.error('Erreur lors de la récupération des commandes:', error);
     res.status(500).json({ error: 'Erreur serveur' });
