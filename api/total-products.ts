@@ -15,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const data = await response.json();
 
     let totalProducts = 0;
-    console.log(data);
+    res.status(200).json({ data });
     // Parcourir toutes les commandes et additionner le nombre de produits
     data.orders.forEach((order: any) => {
       order.line_items.forEach((item: any) => {
