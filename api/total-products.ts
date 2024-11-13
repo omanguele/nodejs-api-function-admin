@@ -3,7 +3,7 @@ import Shopify from 'shopify-api-node';
 
 // Remplacer par vos informations Shopify
 const shopDomain = 'noel-a-lhopital.myshopify.com';  // Domaine de votre boutique
-const apiKey = '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';  // Clé API privée de Shopify
+const apiKey = '26d3eef4c0dff641690ebd51edf2f04d';  // Clé API privée de Shopify
 const apiPassword = '487ce62bbf1395f5a4b96ff9ab309896';  // Mot de passe de l'API privée
 
 // Configurer Shopify API client
