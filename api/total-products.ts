@@ -3,7 +3,7 @@ import Shopify from 'shopify-api-node';
 
 // Remplacer par vos informations Shopify
 const shopDomain = 'noel-a-lhopital.myshopify.com';  // Domaine de votre boutique
-const apiKey = 'f88f60c4f0c78043da45fb5141b18148';  // Clé API privée de Shopify
+const apiKey = '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';  // Clé API privée de Shopify
 const apiPassword = '487ce62bbf1395f5a4b96ff9ab309896';  // Mot de passe de l'API privée
 
 // Configurer Shopify API client
@@ -15,6 +15,8 @@ const shopify = new Shopify({
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
+
+    res.status(200).json({ shopify });
     // Récupérer les commandes avec l'API Shopify
     const orders = await shopify.order.list({
       status: 'any',
@@ -32,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     // Renvoyer le nombre total de produits commandés
-    res.status(200).json({ totalProducts });
+    
   } catch (error) {
     console.error('Erreur lors de la récupération des commandes:', error);
     res.status(500).json({ error: 'Erreur serveur' });
