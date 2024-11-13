@@ -30,6 +30,7 @@ const query = `
 `;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   try {
     // Effectuer la requête GraphQL avec fetch
     const response = await fetch(graphqlUrl, {
