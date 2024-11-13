@@ -1,40 +1,66 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import got from 'got';
+import fetch from 'node-fetch';
 
 // Remplacer par vos informations Shopify
-const apiKey = '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';  // Clé API privée de Shopify
-const apiPassword = '487ce62bbf1395f5a4b96ff9ab309896';  // Mot de passe de l'API privée
 const shopDomain = 'noel-a-lhopital.myshopify.com';  // Domaine de votre boutique
+const accessToken = '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';  // Token d'accès (X-Shopify-Access-Token)
 
-// URL pour récupérer les commandes
-const ordersUrl = `https://${shopDomain}/admin/api/2023-10/orders.json?status=any&financial_status=paid`;
+// URL de l'API Admin de Shopify pour GraphQL
+const graphqlUrl = `https://${shopDomain}/admin/api/2024-10/graphql.json`;
+
+// Définir la requête GraphQL pour récupérer les commandes et les produits
+const query = `
+  query {
+    orders(first: 250, query: "financial_status:paid") {
+      edges {
+        node {
+          id
+          lineItems(first: 250) {
+            edges {
+              node {
+                title
+                quantity
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // Effectuer la requête avec got et l'authentification dans les en-têtes
-    const response = await got(ordersUrl, {
+    // Effectuer la requête GraphQL avec fetch
+    const response = await fetch(graphqlUrl, {
+      method: 'POST',
       headers: {
-        'Authorization': `Basic ${Buffer.from(`${apiKey}:${apiPassword}`).toString('base64')}`,
         'Content-Type': 'application/json',
-      }
+        'X-Shopify-Access-Token': accessToken,  // Utilisation du token d'accès
+      },
+      body: JSON.stringify({ query })
     });
 
-    // Analyser la réponse JSON
-    const data = JSON.parse(response.body);
+    const data = await response.json();
 
-    let totalProducts = 0;
+    if (response.ok) {
+      let totalProducts = 0;
 
-    // Parcourir toutes les commandes et additionner le nombre de produits
-    data.orders.forEach((order: any) => {
-      order.line_items.forEach((item: any) => {
-        totalProducts += item.quantity;
+      // Parcourir les commandes et additionner le nombre de produits dans chaque ligne de commande
+      data.data.orders.edges.forEach((order: any) => {
+        order.node.lineItems.edges.forEach((item: any) => {
+          totalProducts += item.node.quantity;
+        });
       });
-    });
 
-    // Renvoyer le nombre total de produits commandés
-    res.status(200).json({ totalProducts });
+      // Renvoyer le nombre total de produits commandés
+      res.status(200).json({ totalProducts });
+    } else {
+      // Gestion des erreurs si la requête échoue
+      res.status(response.status).json({ error: 'Erreur lors de la récupération des données', details: data });
+    }
   } catch (error) {
-    console.error('Erreur lors de la récupération des commandes:', error);
+    console.error('Erreur lors de l\'exécution de la requête GraphQL:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 }
