@@ -11,7 +11,7 @@ const graphqlUrl = `https://${shopDomain}/admin/api/2024-10/graphql.json`;
 // Définir la requête GraphQL pour récupérer les commandes et les produits
 const query = `
   query {
-    orders(first: 250, query: "financial_status:paid") {
+    orders(first: 1000, query: "financial_status:paid") {
       edges {
         node {
           id
