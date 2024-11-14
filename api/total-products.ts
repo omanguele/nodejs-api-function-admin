@@ -9,9 +9,9 @@ const accessToken = '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';  // Token d'accès
 const graphqlUrl = `https://${shopDomain}/admin/api/2024-10/graphql.json`;
 
 // Définir la requête GraphQL pour récupérer les commandes et les produits
-const query = `
+const query = (cursor: string | null) => `
   query {
-    orders(first: 250, query: "financial_status:paid") {
+    orders(first: 250, query: "financial_status:paid", after: ${cursor ? `"${cursor}"` : "null"}) {
       edges {
         node {
           id
@@ -25,43 +25,57 @@ const query = `
           }
         }
       }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 `;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
+
+  let totalProducts = 0;
+  let hasNextPage = true;
+  let cursor = null;
+
   try {
-    // Effectuer la requête GraphQL avec fetch
-    const response = await fetch(graphqlUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': accessToken,  // Utilisation du token d'accès
-      },
-      body: JSON.stringify({ query })
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      let totalProducts = 0;
-
-      // Parcourir les commandes et additionner le nombre de produits dans chaque ligne de commande
-      data.data.orders.edges.forEach((order: any) => {
-        order.node.lineItems.edges.forEach((item: any) => {
-          if ( item.node.title != "Don" ){
-            totalProducts += item.node.quantity;
-          }
-        });
+    // Boucle pour récupérer toutes les pages
+    while (hasNextPage) {
+      const response = await fetch(graphqlUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': accessToken,  // Utilisation du token d'accès
+        },
+        body: JSON.stringify({ query: query(cursor) })
       });
 
-      // Renvoyer le nombre total de produits commandés
-      res.status(200).json({ totalProducts });
-    } else {
-      // Gestion des erreurs si la requête échoue
-      res.status(response.status).json({ error: 'Erreur lors de la récupération des données', details: data });
+      const data = await response.json();
+
+      if (response.ok) {
+        // Parcourir les commandes et additionner le nombre de produits dans chaque ligne de commande
+        data.data.orders.edges.forEach((order: any) => {
+          order.node.lineItems.edges.forEach((item: any) => {
+            if (item.node.title !== "Don") {  // Exclure le produit "Don"
+              totalProducts += item.node.quantity;
+            }
+          });
+        });
+
+        // Mettre à jour la pagination
+        hasNextPage = data.data.orders.pageInfo.hasNextPage;
+        cursor = data.data.orders.pageInfo.endCursor;
+      } else {
+        res.status(response.status).json({ error: 'Erreur lors de la récupération des données', details: data });
+        return;
+      }
     }
+
+    // Renvoyer le nombre total de produits commandés
+    res.status(200).json({ totalProducts });
+
   } catch (error) {
     console.error('Erreur lors de l\'exécution de la requête GraphQL:', error);
     res.status(500).json({ error: 'Erreur serveur' });
