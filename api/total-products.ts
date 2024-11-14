@@ -15,7 +15,7 @@ const query = `
       edges {
         node {
           id
-          lineItems(first: 250) {
+          lineItems(first: 1000) {
             edges {
               node {
                 title
