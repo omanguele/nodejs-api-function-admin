@@ -1,6 +1,3 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import fetch from 'node-fetch';
-
 // Remplacer par vos informations Shopify
 const shopDomain = 'noel-a-lhopital.myshopify.com';  // Domaine de votre boutique
 const accessToken = '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';  // Token d'accès (X-Shopify-Access-Token)
