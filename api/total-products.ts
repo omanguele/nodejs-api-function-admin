@@ -20,6 +20,7 @@ const query = `
               node {
                 title
                 quantity
+                productId
               }
             }
           }
@@ -47,14 +48,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (response.ok) {
       let totalProducts = 0;
 
+      // Exclure les produits avec l'ID spécifique
+      const excludedProductId = '49184372293936';
+
       // Parcourir les commandes et additionner le nombre de produits dans chaque ligne de commande
       data.data.orders.edges.forEach((order: any) => {
         order.node.lineItems.edges.forEach((item: any) => {
-          totalProducts += item.node.quantity;
+          // Vérifier si l'ID du produit est différent de celui que l'on souhaite exclure
+          if (item.node.productId !== excludedProductId) {
+            totalProducts += item.node.quantity;
+          }
         });
       });
 
-      // Renvoyer le nombre total de produits commandés
+      // Renvoyer le nombre total de produits commandés, excluant l'ID spécifique
       res.status(200).json({ totalProducts });
     } else {
       // Gestion des erreurs si la requête échoue
