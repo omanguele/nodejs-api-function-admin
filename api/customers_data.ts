@@ -11,7 +11,7 @@ const graphqlUrl = `https://${shopDomain}/admin/api/2024-10/graphql.json`;
 // Requête GraphQL pour récupérer les informations des deux dernières commandes payées
 const query = `
   query {
-    orders(first: 2, query: "financial_status:paid", sortKey: CREATED_AT) {
+    orders(first: 2, query: "financial_status:paid", sortKey: CREATED_AT, reverse: true) {
       edges {
         node {
           id
