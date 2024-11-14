@@ -20,7 +20,6 @@ const query =
               node {
                 title
                 quantity
-                id
               }
             }
           }
@@ -51,7 +50,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Parcourir les commandes et additionner le nombre de produits dans chaque ligne de commande
       data.data.orders.edges.forEach((order: any) => {
         order.node.lineItems.edges.forEach((item: any) => {
-          if ( item.node.id != "49184372293936" )
           totalProducts += item.node.quantity;
         });
       });
