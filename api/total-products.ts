@@ -68,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         hasNextPage = data.data.orders.pageInfo.hasNextPage;
         cursor = data.data.orders.pageInfo.endCursor;
       } else {
-        res.status(response.status).json({ error: 'Erreur lors de la récupération des données', details: data });
+        res.status(response.status).json({ error: '', details: data });
         return;
       }
     }
