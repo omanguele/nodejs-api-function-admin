@@ -77,7 +77,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).json({ totalProducts });
 
   } catch (error) {
-    console.error('Erreur lors de l\'exécution de la requête GraphQL:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 }
